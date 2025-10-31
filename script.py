@@ -6,6 +6,7 @@ from PySide6.QtWidgets import QApplication, QWidget, QLabel, QMessageBox
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
 
+
 class DragDropWidget(QWidget):
     def __init__(self):
         super().__init__()
@@ -89,17 +90,21 @@ class DragDropWidget(QWidget):
         output_file = os.path.join(os.path.dirname(input_file), base)
 
         with open(input_file, mode="r", encoding="utf-8", newline="") as infile, \
-             open(output_file, mode="w", encoding="utf-8", newline="") as outfile:
+                open(output_file, mode="w", encoding="utf-8", newline="") as outfile:
 
             reader = csv.reader(infile)
             header = next(reader)
+            print(header)
             idx_map = {name: i for i, name in enumerate(header)}
 
             all_headers = ["LP"] + header
             quoted_headers = ['"' + h + '"' for h in all_headers]
             outfile.write("|".join(quoted_headers) + "\n")
 
-            quote_cols = [idx_map[col] for col in ["PUP_NIP", "PUP_NAZWA", "AKT_SYM", "AKT_DATA", "BF_NAZWA"] if col in idx_map]
+            quote_cols = [idx_map[col] for col in
+                          ["PUP_NIP", "PUP_NAZWA", "AKT_SYM", "AKT_DATA", "BF_NAZWA"] if
+                          col in idx_map]
+            bf_idx = idx_map.get("Podstawowe informacje::Nazwa beneficjenta")
             nom_idx = idx_map.get("KWOTA_NOM")
             brut_idx = idx_map.get("KWOTA_BRUT")
             date_idxs = [idx_map[col] for col in ["AKT_DATA", "PP_DATA"] if col in idx_map]
@@ -120,10 +125,14 @@ class DragDropWidget(QWidget):
                     if i < len(row):
                         row[i] = '"' + row[i] + '"'
 
+                if bf_idx is not None and bf_idx < len(row):
+                    row[bf_idx] = row[bf_idx].replace('"', '')
+
                 output_fields = [str(lp)] + row
                 outfile.write("|".join(output_fields) + "\n")
 
         return output_file
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
